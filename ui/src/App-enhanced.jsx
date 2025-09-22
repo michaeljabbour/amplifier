@@ -39,7 +39,7 @@ const VirtualTerminal = ({ sessionId, isActive }) => {
   useEffect(() => {
     if (isActive && sessionId) {
       // Connect to WebSocket
-      const newSocket = io('http://localhost:5002')
+      const newSocket = io('http://localhost:5001')
       setSocket(newSocket)
 
       // Join session room
@@ -152,7 +152,7 @@ function App() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const response = await fetch('http://localhost:5002/api/health')
+        const response = await fetch('http://localhost:5001/api/health')
         if (response.ok) {
           const data = await response.json()
           setBackendStatus(data.status === 'healthy' ? 'connected' : 'error')
@@ -173,7 +173,7 @@ function App() {
   useEffect(() => {
     const loadSessions = async () => {
       try {
-        const response = await fetch('http://localhost:5002/api/sessions')
+        const response = await fetch('http://localhost:5001/api/sessions')
         if (response.ok) {
           const data = await response.json()
           setSessions(data.sessions || [])
@@ -195,7 +195,7 @@ function App() {
     const loadMessages = async () => {
       if (selectedSession) {
         try {
-          const response = await fetch(`http://localhost:5002/api/sessions/${selectedSession.session_id}`)
+          const response = await fetch(`http://localhost:5001/api/sessions/${selectedSession.session_id}`)
           if (response.ok) {
             const data = await response.json()
             setMessages(data.messages || [])
@@ -214,7 +214,7 @@ function App() {
     if (!sessionName) return
 
     try {
-      const response = await fetch('http://localhost:5002/api/sessions', {
+      const response = await fetch('http://localhost:5001/api/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -240,7 +240,7 @@ function App() {
     if (!newMessage.trim() || !selectedSession) return
 
     try {
-      const response = await fetch(`http://localhost:5002/api/sessions/${selectedSession.session_id}/messages`, {
+      const response = await fetch(`http://localhost:5001/api/sessions/${selectedSession.session_id}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -616,7 +616,7 @@ function App() {
                           onClick={async () => {
                             if (confirm('Delete this session?')) {
                               try {
-                                await fetch(`http://localhost:5002/api/sessions/${session.session_id}`, {
+                                await fetch(`http://localhost:5001/api/sessions/${session.session_id}`, {
                                   method: 'DELETE'
                                 })
                                 setSessions(prev => prev.filter(s => s.session_id !== session.session_id))
