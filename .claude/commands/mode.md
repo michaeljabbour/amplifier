@@ -1,0 +1,1 @@
+/Users/michaeljabbour/dev/amplifier/.amplifier/directory/commands/mode.md

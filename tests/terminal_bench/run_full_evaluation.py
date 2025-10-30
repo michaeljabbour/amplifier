@@ -80,40 +80,19 @@ def run_evaluation(
     return results
 
 
-def analyze_results(results) -> Dict[str, Any]:
+def analyze_results(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Analyze the evaluation results."""
-    # Handle BenchmarkResults object from terminal-bench
-    if hasattr(results, 'results'):
-        results_list = results.results
-    elif isinstance(results, list):
-        results_list = results
-    else:
-        # Try to extract results from the object
-        results_list = []
-        if hasattr(results, '__dict__'):
-            for key, value in results.__dict__.items():
-                if 'results' in key.lower() and isinstance(value, list):
-                    results_list = value
-                    break
-
-    total = len(results_list) if results_list else 0
-    successful = sum(1 for r in results_list if (r.get("success", False) if isinstance(r, dict) else getattr(r, 'success', False)))
+    total = len(results)
+    successful = sum(1 for r in results if r.get("success", False))
     failed = total - successful
 
     # Group failures by type
     failure_types = {}
-    for result in results_list:
-        if isinstance(result, dict):
-            if not result.get("success", False):
-                task_id = result.get("task_id", "unknown")
-                error = result.get("error", "unknown error")
-                failure_types[task_id] = error[:200] if isinstance(error, str) else str(error)[:200]
-        else:
-            # Handle object-based results
-            if not getattr(result, 'success', False):
-                task_id = getattr(result, 'task_id', 'unknown')
-                error = getattr(result, 'error', 'unknown error')
-                failure_types[task_id] = str(error)[:200]
+    for result in results:
+        if not result.get("success", False):
+            task_id = result.get("task_id", "unknown")
+            error = result.get("error", "unknown error")
+            failure_types[task_id] = error[:200] if isinstance(error, str) else str(error)[:200]
 
     return {
         "total_tasks": total,

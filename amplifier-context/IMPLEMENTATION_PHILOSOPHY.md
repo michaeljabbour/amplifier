@@ -1,0 +1,1 @@
+/Users/michaeljabbour/dev/amplifier/.amplifier/directory/contexts/IMPLEMENTATION_PHILOSOPHY.md
