@@ -1,0 +1,42 @@
+description: |
+  Solve the N-Queens problem using recursive backtracking.
+
+  Requirements:
+  1. Read the board size N from `config.json`
+  2. Find ALL valid solutions using recursive backtracking
+  3. Track recursion depth throughout the solving process
+  4. Output results to `solutions.json` with format:
+     {
+       "n": 4,
+       "solutions_count": 2,
+       "solutions": [
+         {"placement": [1, 3, 0, 2], "board": [[..], [..], [..], [..]]},
+         {"placement": [2, 0, 3, 1], "board": [[..], [..], [..], [..]]}
+       ],
+       "max_recursion_depth": 4,
+       "execution_time_ms": 1.23
+     }
+  5. Each solution shows: queen positions as column indices per row, and the board visualization
+
+  The `config.json` input will contain:
+  {"n": 4}
+
+  A valid placement is represented as an array where index i = row, value = column.
+  For example [1, 3, 0, 2] means:
+  - Row 0: Queen at column 1
+  - Row 1: Queen at column 3
+  - Row 2: Queen at column 0
+  - Row 3: Queen at column 2
+
+  Success criteria:
+  - Find all valid solutions for n = 4 (2 solutions exist)
+  - Find at least one solution for n = 8 (92 solutions exist)
+  - No queens attacking each other (same row, column, or diagonal)
+  - Maximum recursion depth tracked correctly
+  - Proper error handling for invalid n values
+
+difficulty: hard
+category: puzzles
+tags: [recursion, backtracking, constraint-satisfaction, optimization]
+max_agent_timeout_sec: 300
+max_test_timeout_sec: 30

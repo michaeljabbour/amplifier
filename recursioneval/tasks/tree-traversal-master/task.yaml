@@ -1,0 +1,34 @@
+description: |
+  Implement binary tree traversal algorithms: inorder, preorder, and postorder.
+
+  Requirements:
+  1. Read a binary tree structure from `config.json` in array format
+  2. Implement three recursive traversal algorithms:
+     - Inorder (Left -> Node -> Right)
+     - Preorder (Node -> Left -> Right)
+     - Postorder (Left -> Right -> Node)
+  3. Output results to `traversals.json` with format:
+     {
+       "inorder": [1, 2, 3, 4, 5],
+       "preorder": [2, 1, 3, 4, 5],
+       "postorder": [1, 4, 5, 3, 2],
+       "recursion_depth": 4
+     }
+  4. Track maximum recursion depth during all traversals
+  5. Handle edge cases (empty tree, single node)
+
+  The `config.json` input will contain a complete binary tree in level-order array format:
+  {"tree": [1, 2, 3, 4, 5, null, 6]}
+  where null represents missing nodes.
+
+  Success criteria:
+  - Correct traversal sequences for all three methods
+  - All traversals visit exactly n nodes for a tree with n nodes
+  - Maximum recursion depth tracked accurately
+  - Proper error handling for malformed input
+
+difficulty: easy
+category: algorithms
+tags: [recursion, tree-traversal, binary-tree, depth-first-search]
+max_agent_timeout_sec: 120
+max_test_timeout_sec: 10

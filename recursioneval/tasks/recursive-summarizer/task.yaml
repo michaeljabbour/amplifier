@@ -1,0 +1,43 @@
+description: |
+  Implement a recursive text summarization system that demonstrates semantic drift.
+
+  Requirements:
+  1. Read input text from `input.txt`
+  2. Recursively summarize the text N times (default N=5)
+  3. Track how information changes across iterations (semantic drift)
+  4. Calculate fact retention percentage at each level
+  5. Output results to JSON with:
+     {
+       "original_text": "...",
+       "iterations": 5,
+       "summaries": [
+         {"iteration": 1, "text": "...", "length_reduction": 0.45, "fact_retention": 0.95},
+         {"iteration": 2, "text": "...", "length_reduction": 0.42, "fact_retention": 0.87},
+         ...
+       ],
+       "total_semantic_drift": 0.34,
+       "average_fact_retention": 0.81,
+       "max_depth": 5,
+       "execution_time_ms": 245.67
+     }
+
+  The system should:
+  - Start with original text
+  - Summarize to ~70% of previous length at each iteration
+  - Track key facts/entities at each level
+  - Calculate semantic similarity between original and final summary
+  - Handle recursive summarization gracefully
+
+  Success criteria:
+  - All 5 iterations completed successfully
+  - Summaries progressively shorter
+  - Fact retention decreases monotonically
+  - Semantic drift calculated correctly
+  - Proper JSON output format
+  - Edge cases handled gracefully
+
+difficulty: medium
+category: meta-reasoning
+tags: [recursion, nlp, semantic-drift, meta-reasoning]
+max_agent_timeout_sec: 180
+max_test_timeout_sec: 30

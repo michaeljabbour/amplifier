@@ -1,0 +1,28 @@
+description: |
+  Implement a recursive Fibonacci calculator that can compute F(n) for n up to 30.
+
+  Requirements:
+  1. Create a Python script `fib.py` that takes a command-line argument n
+  2. Implement BOTH recursive and memoized versions
+  3. Compare performance and output results to `results.json`
+  4. Handle edge cases (n<0, non-integer input)
+
+  The script should output JSON with:
+  - "recursive_result": the Fibonacci number
+  - "recursive_time": execution time in ms
+  - "memoized_result": the Fibonacci number (memoized)
+  - "memoized_time": execution time in ms
+
+  Example: python fib.py 10 should compute F(10) = 55
+
+  Success criteria:
+  - Correct Fibonacci values for n = 0, 1, 10, 20, 30
+  - Memoized version is faster than recursive for n > 10
+  - Proper JSON output format
+  - Edge cases handled gracefully
+
+difficulty: easy
+category: algorithms
+tags: [recursion, dynamic-programming, optimization]
+max_agent_timeout_sec: 120
+max_test_timeout_sec: 10

@@ -1,0 +1,36 @@
+# Archives and temporary files
+/archive/
+/backup/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+*.egg-info/
+.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Terminal-Bench evaluation outputs
+ai_working/
+tmp/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log

@@ -1,0 +1,36 @@
+description: |
+  Solve nested logic puzzles using recursive truth evaluation.
+
+  Requirements:
+  1. Read a logic puzzle from `config.json` with nested conditions
+  2. Recursively evaluate the truth value of complex logic expressions
+  3. Track recursion depth throughout the evaluation
+  4. Output results to `solution.json` with format:
+     {
+       "expression": "AND(OR(A, B), NOT(C))",
+       "result": true,
+       "recursion_depth": 3,
+       "evaluation_steps": [...],
+       "execution_time_ms": 1.23
+     }
+  5. Support operators: AND, OR, NOT, IF_THEN, IFF (if and only if)
+
+  The `config.json` input will contain:
+  {
+    "expression": "AND(OR(A, B), NOT(C))",
+    "values": {"A": true, "B": false, "C": true}
+  }
+
+  Success criteria:
+  - Correct evaluation of complex nested expressions
+  - Proper handling of all logical operators
+  - Maximum recursion depth tracked accurately
+  - All evaluation steps recorded for tracing
+  - Proper error handling for malformed expressions
+  - Support for deeply nested expressions (depth > 10)
+
+difficulty: medium
+category: logic
+tags: [recursion, logic-evaluation, expression-parsing, truth-tables]
+max_agent_timeout_sec: 180
+max_test_timeout_sec: 20
