@@ -1,0 +1,33 @@
+description: |
+  Solve the Tower of Hanoi puzzle and output the optimal move sequence.
+
+  Requirements:
+  1. Read the number of disks from `config.json` (will be 3, 4, or 5)
+  2. Generate the MINIMAL move sequence using recursive algorithm
+  3. Output to `moves.json` with format:
+     {"moves": ["A->C", "A->B", "C->B", ...], "total_moves": 7, "recursion_depth": 3}
+  4. Implement verification that no illegal moves are made
+  5. Track the maximum recursion depth reached during solving
+
+  The solution MUST be optimal (2^n - 1 moves for n disks).
+
+  The `config.json` file will contain:
+  {"disks": 3, "source": "A", "destination": "C", "auxiliary": "B"}
+
+  Rules:
+  - Only one disk can be moved at a time
+  - A larger disk cannot be placed on a smaller disk
+  - All disks start on the source peg
+  - All disks must end on the destination peg
+
+  Success criteria:
+  - Correct number of moves (2^n - 1)
+  - Valid move sequence (no illegal moves)
+  - All disks end on destination peg
+  - Recursion depth tracked correctly
+
+difficulty: medium
+category: puzzles
+tags: [recursion, planning, algorithms, classic-problems]
+max_agent_timeout_sec: 180
+max_test_timeout_sec: 20

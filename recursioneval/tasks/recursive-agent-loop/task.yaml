@@ -1,0 +1,49 @@
+description: |
+  Implement a self-improving recursive agent loop that iteratively refines solutions.
+
+  Requirements:
+  1. Read an initial problem from `problem.txt`
+  2. Agent generates initial solution
+  3. Recursively improves the solution for N iterations (default N=5)
+  4. At each iteration:
+     - Review current solution for quality and completeness
+     - Identify weaknesses and gaps
+     - Generate improved version
+     - Calculate improvement metrics
+  5. Track quality metrics per iteration
+  6. Output results to JSON with format:
+     {
+       "problem": "...",
+       "iterations": 5,
+       "solutions": [
+         {"iteration": 1, "solution": "...", "quality_score": 0.65, "improvement": 0.0},
+         {"iteration": 2, "solution": "...", "quality_score": 0.75, "improvement": 0.15},
+         ...
+       ],
+       "total_improvement": 0.42,
+       "convergence_rate": 0.89,
+       "max_depth": 5,
+       "execution_time_ms": 456.78
+     }
+
+  The agent should:
+  - Start with a baseline solution
+  - Evaluate quality at each iteration (0-1 score)
+  - Track improvement percentage between iterations
+  - Recognize when quality plateaus (convergence)
+  - Stop if improvement becomes minimal
+  - Handle recursive refinement gracefully
+
+  Success criteria:
+  - All 5 iterations completed successfully
+  - Quality scores generally increase
+  - Improvement tracked correctly between iterations
+  - Convergence rate calculated
+  - Proper JSON output format
+  - Edge cases handled gracefully
+
+difficulty: hard
+category: meta-reasoning
+tags: [recursion, self-improvement, agent-loop, meta-reasoning]
+max_agent_timeout_sec: 240
+max_test_timeout_sec: 30

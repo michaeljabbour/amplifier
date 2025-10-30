@@ -1,0 +1,21 @@
+description: |
+  You are a software engineer tasked with creating a small **contact management web API** application from scratch. The goal is to implement and launch a web server that can **store and retrieve contact information**. Follow these requirements to complete the task:
+
+  1. **Web Server**: Set up an HTTP server (for example, using a Python web framework or any suitable tool) listening on **port 5000** and accepting connections from any IP (host `0.0.0.0`).
+  2. **Create Contact Endpoint (POST)**: Implement a **POST** endpoint at `/contacts` that accepts a JSON payload with at least `"name"` and `"phone"` fields. On success, this endpoint should **store the contact** in a persistent database and return a JSON response containing the saved contact's details **including a unique ID**.
+  3. **List Contacts Endpoint (GET)**: Implement a **GET** endpoint at `/contacts` that returns a JSON **list of all contacts** currently stored. Each contact object in the list should include its `"id"`, `"name"`, and `"phone"`.
+  4. **Data Persistence**: Use a SQLite database (or a similar file-based database) to store contacts so that multiple requests can access shared data. The database file (e.g. `contacts.db`) should be created in the working directory (*/app/*).
+  5. **Background Server**: Launch or fork the server process in the **background** (e.g., using `&` or a similar mechanism) and leave it running so that it continues to serve requests while the task is being evaluated. **Do not terminate the server** before finishing the task – it must remain active for test queries.
+
+  *Notes*: You may use any programming language or framework available in the environment to implement the server and database. Ensure that the server is running on the correct port and that the API endpoints meet the specifications above.
+
+  **Success criteria**: The automated test will perform the following checks to verify your solution:
+  - **POST /contacts**: The test will send a sample contact (with a name and phone number). The API must respond with a **200 OK or 201 Created** status and return a JSON object containing the saved contact (including a generated `id`, and matching name and phone).
+  - **GET /contacts**: After adding a contact, the test will send a GET request to `/contacts`. The API should respond with **200 OK** and return a JSON list that includes the previously added contact. The contact's details in the list must match what was provided (same `name` and `phone`, and the correct `id`).
+
+difficulty: medium
+category: software-engineering
+tags: [web, database, api]
+author_email: michael.jabbour@gmail.com
+max_agent_timeout_sec: 300
+max_test_timeout_sec: 30

@@ -1,0 +1,48 @@
+description: |
+  Implement a self-referential problem decomposition solver that references its own output.
+
+  Requirements:
+  1. Read a problem specification from `problem.json`
+  2. Decompose the problem into subproblems
+  3. For each subproblem, reference the solution to previous subproblems
+  4. Build up solutions iteratively, with each solution depending on prior ones
+  5. Track call chain depth and dependency graph
+  6. Output results to JSON with format:
+     {
+       "problem": "...",
+       "solution_chain": [
+         {"step": 1, "subproblem": "...", "solution": "...", "depth": 1, "dependencies": []},
+         {"step": 2, "subproblem": "...", "solution": "...", "depth": 2, "dependencies": [1]},
+         ...
+       ],
+       "total_steps": 5,
+       "max_depth": 5,
+       "dependency_count": 8,
+       "execution_time_ms": 123.45
+     }
+
+  Problem specification format:
+  {
+    "problem": "Sort and filter a list of numbers",
+    "subproblems": [
+      {"id": 1, "description": "Parse input numbers"},
+      {"id": 2, "description": "Sort the numbers", "depends_on": [1]},
+      {"id": 3, "description": "Filter even numbers", "depends_on": [2]},
+      {"id": 4, "description": "Calculate sum", "depends_on": [3]},
+      {"id": 5, "description": "Format output", "depends_on": [3, 4]}
+    ]
+  }
+
+  Success criteria:
+  - All subproblems solved in dependency order
+  - Each solution references previous solutions correctly
+  - Call chain depth tracked accurately
+  - Dependencies resolved without cycles
+  - Proper JSON output format
+  - Edge cases handled gracefully
+
+difficulty: medium
+category: meta-reasoning
+tags: [recursion, self-reference, problem-decomposition, meta-reasoning]
+max_agent_timeout_sec: 180
+max_test_timeout_sec: 20

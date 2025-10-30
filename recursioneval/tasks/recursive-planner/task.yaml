@@ -1,0 +1,55 @@
+description: |
+  Implement a hierarchical task decomposition planner using recursion.
+
+  Requirements:
+  1. Read a complex task from `config.json` with subtask dependencies
+  2. Recursively decompose tasks into their subtasks
+  3. Generate an execution plan that respects dependencies
+  4. Track recursion depth and task hierarchy levels
+  5. Output results to `plan.json` with format:
+     {
+       "original_task": "Build a house",
+       "execution_plan": [
+         {"id": "1", "task": "Prepare foundation", "subtasks": [], "depth": 1},
+         {"id": "2", "task": "Build walls", "subtasks": [], "depth": 1},
+         ...
+       ],
+       "total_tasks": 12,
+       "max_depth": 4,
+       "recursion_depth": 5,
+       "execution_time_ms": 2.34
+     }
+
+  The `config.json` input will contain:
+  {
+    "task": "Build a house",
+    "decomposable": true,
+    "subtasks": [
+      {
+        "task": "Prepare foundation",
+        "decomposable": false
+      },
+      {
+        "task": "Build structure",
+        "decomposable": true,
+        "subtasks": [
+          {"task": "Frame walls", "decomposable": false},
+          {"task": "Install roof", "decomposable": false}
+        ]
+      }
+    ]
+  }
+
+  Success criteria:
+  - Correct task decomposition respecting hierarchy
+  - Execution plan correctly ordered by dependencies
+  - All leaf tasks (non-decomposable) present in plan
+  - Maximum depth tracked correctly
+  - Proper handling of tasks with no subtasks
+  - Recursion depth tracked for all nested decompositions
+
+difficulty: medium
+category: planning
+tags: [recursion, planning, task-decomposition, hierarchical-planning]
+max_agent_timeout_sec: 180
+max_test_timeout_sec: 20
