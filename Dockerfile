@@ -38,7 +38,7 @@ RUN mkdir -p /root/.config/claude-code
 WORKDIR /app
 
 # Clone Amplifier repository
-RUN git clone https://github.com/microsoft/amplifier.git /app/amplifier
+RUN git clone https://github.com/michaeljabbour/amplifier.git /app/amplifier
 
 # Set working directory to amplifier
 WORKDIR /app/amplifier
@@ -53,7 +53,7 @@ RUN mkdir -p /app/amplifier-data && \
     mkdir -p /app/amplifier/.data
 
 # Clone Amplifier to /root/amplifier where Claude Code will start
-RUN git clone https://github.com/microsoft/amplifier.git /root/amplifier
+RUN git clone https://github.com/michaeljabbour/amplifier.git /root/amplifier
 
 # Build Amplifier in /root/amplifier
 WORKDIR /root/amplifier

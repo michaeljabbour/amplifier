@@ -332,7 +332,7 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        help="Model to use (e.g., claude-3-5-sonnet-latest)"
+        help="Model to use (e.g., claude-sonnet-4-5)"
     )
 
     parser.add_argument(

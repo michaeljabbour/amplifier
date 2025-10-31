@@ -10,7 +10,7 @@ from datetime import datetime
 
 def find_latest_run():
     """Find the most recent run directory."""
-    base_dir = Path("/Users/michaeljabbour/dev/ai_working/tmp")
+    base_dir = Path(__file__).parent / "results"
     if not base_dir.exists():
         return None
 

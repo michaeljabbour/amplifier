@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 # Default values
 AGENT="amplifier"
 SPLIT="small"
-CONCURRENT=3
+CONCURRENT=10
 MODEL=""
 
 # Parse arguments
@@ -56,8 +56,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --test       Run test set"
             echo "  --baseline   Use baseline agent (default: amplifier)"
             echo "  --both       Run both amplifier and baseline"
-            echo "  --model NAME Specify model (e.g., claude-3-5-sonnet-latest)"
-            echo "  --concurrent N  Number of concurrent trials (default: 3)"
+            echo "  --model NAME Specify model (e.g., claude-sonnet-4-5)"
+            echo "  --concurrent N  Number of concurrent trials (default: 10)"
             echo "  --help       Show this help message"
             echo ""
             echo "Examples:"
@@ -103,7 +103,7 @@ if [ -n "$MODEL" ]; then
 fi
 
 # Create output directory if it doesn't exist
-mkdir -p ai_working/tmp
+mkdir -p results
 
 # Clean up old Docker networks if needed
 NETWORK_COUNT=$(docker network ls | wc -l)
@@ -119,22 +119,50 @@ echo ""
 
 # Run and capture exit code
 if $CMD; then
+    EVAL_SUCCESS=true
     echo ""
     echo -e "${GREEN}✅ Evaluation completed successfully!${NC}"
 
-    # Find the latest run directory
-    LATEST_RUN=$(ls -t ai_working/tmp | grep -E "^${AGENT}_${SPLIT}_" | head -1)
-    if [ -n "$LATEST_RUN" ]; then
-        echo ""
-        echo -e "${BLUE}Results saved to: ai_working/tmp/$LATEST_RUN${NC}"
-        echo ""
-        echo "Next steps:"
-        echo "  1. Monitor progress:  uv run tests/terminal_bench/monitor_evaluation.py"
-        echo "  2. Generate report:   uv run tests/terminal_bench/generate_benchmark_report.py --run-dir ai_working/tmp/$LATEST_RUN"
-        echo "  3. View dashboard:    uv run tests/terminal_bench/generate_eval_dashboard.py"
-    fi
+    # Flatten the nested folder structure
+    echo -e "${BLUE}Flattening results structure...${NC}"
+    uv run utils/flatten_results.py 2>/dev/null || true
 else
+    EVAL_SUCCESS=false
     echo ""
-    echo -e "${RED}❌ Evaluation failed${NC}"
+    echo -e "${YELLOW}⚠️ Evaluation encountered an issue${NC}"
+fi
+
+# Always try to analyze results
+echo ""
+echo -e "${BLUE}=== Analyzing Results ===${NC}"
+echo ""
+
+# Run analysis script
+if uv run analyze_terminal_bench_results.py --format text 2>/dev/null; then
+    echo ""
+    echo -e "${GREEN}✅ Analysis complete!${NC}"
+else
+    # Fallback to analyze_last_run.py if new script fails
+    echo "Trying alternative analysis..."
+    uv run analyze_last_run.py 2>/dev/null || echo -e "${YELLOW}⚠️ Could not analyze results${NC}"
+fi
+
+# Find the latest run directory for additional info
+LATEST_RUN=$(ls -t results 2>/dev/null | grep -E "^${AGENT}_${SPLIT}_" | head -1)
+if [ -n "$LATEST_RUN" ]; then
+    echo ""
+    echo -e "${BLUE}Results saved to: results/$LATEST_RUN${NC}"
+    echo ""
+    echo "Additional analysis options:"
+    echo "  1. Monitor progress:  uv run monitor_evaluation.py"
+    echo "  2. Generate report:   uv run generate_benchmark_report.py --run-dir results/$LATEST_RUN"
+    echo "  3. View dashboard:    uv run generate_eval_dashboard.py"
+    echo "  4. AI-ready JSON:     uv run analyze_terminal_bench_results.py --format json"
+fi
+
+# Exit with appropriate code
+if [ "$EVAL_SUCCESS" = true ]; then
+    exit 0
+else
     exit 1
 fi

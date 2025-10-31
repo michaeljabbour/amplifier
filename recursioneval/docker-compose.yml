@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Main evaluation controller - runs Terminal-Bench with Docker socket access
+  evaluator:
+    build:
+      context: .
+      target: evaluation
+    image: recursioneval:latest
+    container_name: recursioneval-controller
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CONCURRENT_TASKS=${CONCURRENT_TASKS:-10}
+    volumes:
+      - ./results:/app/results
+      - ./tasks:/app/tasks:ro
+      - /var/run/docker.sock:/var/run/docker.sock  # Terminal-Bench needs Docker access
+    network_mode: host  # Use host network for Terminal-Bench Docker access
+    command: >
+      bash -c "
+        echo '🚀 Starting Terminal-Bench Evaluation';
+        echo 'Concurrent Tasks: ${CONCURRENT_TASKS:-10}';
+        uv run run_full_evaluation.py
+          --agent ${AGENT:-amplifier}
+          --split ${SPLIT:-small}
+          --concurrent ${CONCURRENT_TASKS:-10}
+          --timeout-multiplier ${TIMEOUT_MULTIPLIER:-2.0}
+      "
+
+  # Resource monitor (optional)
+  monitor:
+    image: alpine:latest
+    container_name: recursioneval-monitor
+    profiles: ["monitoring"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    network_mode: host
+    command: >
+      sh -c "
+        apk add --no-cache docker-cli &&
+        while true; do
+          echo '📊 Resource Usage:';
+          docker stats --no-stream --format 'table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}';
+          sleep 10;
+        done
+      "

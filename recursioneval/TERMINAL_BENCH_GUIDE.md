@@ -53,7 +53,7 @@ uv run tests/terminal_bench/run_full_evaluation.py \
   --split train \
   --concurrent 5 \
   --attempts 1 \
-  --model claude-3-5-sonnet-latest
+  --model claude-sonnet-4-5
 ```
 
 ### 4. Monitor Progress

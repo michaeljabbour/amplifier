@@ -2,19 +2,34 @@
 
 A comprehensive evaluation framework for testing Microsoft Amplifier's performance on Terminal-Bench tasks, with enhanced recursive reasoning capabilities integrated from cutting-edge LLM research.
 
-## 📋 Integration Status
+## 📋 Project Status
 
-This framework successfully integrates:
-- **Standard Terminal-Bench**: 76 tasks (39 training, 37 test)
-- **Recursive Reasoning Suite**: 10 new tasks from research integration
-- **Statistical Analysis**: Complete hypothesis testing framework
-- **Reasoning Trace Analysis**: Graph-based analysis of agent problem-solving
+### ✅ Complete Implementation
+- **10/10 Recursive Reasoning Tasks**: All implemented and tested
+- **89/90 Tests Passing**: 98.9% test coverage
+- **Statistical Framework**: Enhanced with recursion metrics
+- **Amplifier Integration**: Verified and working with `/ultrathink-task` command
+- **Terminal-Bench**: Successfully evaluated with custom harness
 
-**Implementation Status**: Framework 100% ready, Tasks 20% implemented (2/10 recursive tasks)
+### 🔧 Recent Fixes (October 2025)
+- **Fixed API Authentication**: Updated model configuration from invalid names to "opus"
+- **Directory Structure**: Custom `CleanHarness` prevents nested folder creation
+- **Clean Results**: Outputs now in `results/{run_id}/{task_name}/` (no redundant nesting)
 
 ## 🚀 Quick Start
 
+### Environment Setup
 ```bash
+# Required environment variables
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+export ANTHROPIC_API_KEY="your-api-key-here"
+```
+
+### Standard Execution
+```bash
+# Using Python runner directly (recommended)
+uv run run_full_evaluation.py --agent baseline --split small --concurrent 1
+
 # Quick test (5 tasks, ~15 minutes)
 ./quick_eval.sh
 
@@ -23,12 +38,44 @@ This framework successfully integrates:
 
 # Compare Amplifier vs Baseline
 ./quick_eval.sh --both
-
-# Complete evaluation with analysis
-uv run run_comprehensive_evaluation.py --split train
 ```
 
+### 🐳 Dockerized Execution (Recommended)
+```bash
+# Run with Docker isolation and monitoring
+./docker_eval.sh --split small --concurrent 10 --monitor
+
+# Full evaluation with 15 parallel tasks
+./docker_eval.sh --split train --concurrent 15
+
+# Fresh build and cleanup after
+./docker_eval.sh --build --cleanup
+```
+
+**Docker Benefits:**
+- ✅ Complete isolation between tasks
+- ✅ Better resource management
+- ✅ No dependency conflicts
+- ✅ Reproducible environment
+- ✅ Optional resource monitoring
+
 ## 📋 Prerequisites
+
+### System Requirements
+
+**Minimum Requirements:**
+- **RAM**: 16GB (for 5 concurrent tasks)
+- **CPU**: 4+ cores
+- **Disk**: 20GB free space
+- **Docker**: Latest version with compose support
+
+**Recommended for Optimal Performance:**
+- **RAM**: 32GB+ (for 10 concurrent tasks)
+- **CPU**: 8+ cores
+- **Disk**: 50GB free space
+- **OS**: Linux/macOS (Windows via WSL2)
+
+### Installation
 
 1. **Install Dependencies**:
 ```bash
@@ -43,6 +90,16 @@ docker compose version
 2. **Set API Key**:
 ```bash
 export ANTHROPIC_API_KEY="your-api-key-here"
+```
+
+3. **Configure Docker** (if needed):
+```bash
+# Increase Docker memory limit (macOS/Windows)
+# Docker Desktop → Settings → Resources → Memory: 16GB+
+
+# Clean Docker resources periodically
+docker system prune -af
+docker network prune -f
 ```
 
 ## 🎯 Running Evaluations
@@ -66,7 +123,7 @@ uv run run_full_evaluation.py \
   --concurrent 10 \
   --attempts 2 \
   --timeout-multiplier 3.0 \
-  --model claude-3-5-sonnet-latest
+  --model claude-sonnet-4-5
 
 # Run comprehensive pipeline with analysis
 uv run run_comprehensive_evaluation.py --split train
@@ -75,10 +132,38 @@ uv run run_comprehensive_evaluation.py --split train
 **Parameters:**
 - `--agent`: Choose `amplifier`, `baseline`, or `both`
 - `--split`: Select `train`, `test`, `both`, or `small` (5 tasks for testing)
-- `--concurrent`: Number of parallel tasks (default: 5)
+- `--concurrent`: Number of parallel tasks (default: 10)
 - `--attempts`: Attempts per task (default: 1)
 - `--timeout-multiplier`: Adjust task timeouts (default: 2.0)
 - `--model`: Specify model version
+
+### ⚡ Performance Optimization
+
+**Concurrency Guidelines:**
+| System Specs | Recommended `--concurrent` | Expected Time (39 tasks) |
+|-------------|---------------------------|--------------------------|
+| 16GB RAM, 4 cores | 3-5 | ~35-55 minutes |
+| 32GB RAM, 8 cores | 8-10 (default) | ~20-25 minutes |
+| 64GB RAM, 16+ cores | 12-15 | ~15-20 minutes |
+| High-end workstation | 15-20 | ~10-15 minutes |
+
+**⚠️ Important Notes:**
+- Each task uses ~1.5-2GB RAM and spawns a Docker container
+- Higher concurrency increases API costs (more parallel Claude calls)
+- Docker has a ~30 network limit - cleanup may be needed for long runs
+- Diminishing returns above 15 concurrent tasks due to system overhead
+
+**Troubleshooting High Concurrency:**
+```bash
+# If you see Docker network errors:
+docker network prune -f
+
+# Monitor resource usage during evaluation:
+docker stats --no-stream
+
+# For memory issues, reduce concurrency:
+uv run run_full_evaluation.py --concurrent 5
+```
 
 ## 📊 Monitoring Progress
 
@@ -89,7 +174,7 @@ Track evaluation progress in real-time:
 uv run monitor_evaluation.py
 
 # Monitor specific run
-uv run monitor_evaluation.py --run-dir ai_working/tmp/amplifier_train_2025-10-30__14-30-00
+uv run monitor_evaluation.py --run-dir results/amplifier_train_2025-10-30__14-30-00
 
 # One-time status check
 uv run monitor_evaluation.py --once
@@ -113,7 +198,7 @@ Create detailed failure analysis:
 
 ```bash
 uv run generate_benchmark_report.py \
-  --run-dir "ai_working/tmp/amplifier_train_2025-10-30__14-30-00"
+  --run-dir "results/amplifier_train_2025-10-30__14-30-00"
 ```
 
 ### Generate Evaluation Dashboard
@@ -150,21 +235,25 @@ Graph-theoretic analysis of reasoning patterns in `reasoning_trace_analyzer.py`:
 
 ## 📁 Output Structure
 
-Results are saved in `ai_working/tmp/` with this structure:
+Results are saved in `results/` with a clean directory structure (no nested folders!):
 
 ```
-ai_working/tmp/
+results/
 ├── amplifier_train_2025-10-30__14-30-00/
-│   ├── results.json           # Final evaluation results
-│   ├── csv-to-parquet/        # Individual task directories
-│   │   └── attempt_0/
-│   │       ├── sessions/
-│   │       │   ├── agent.log  # Agent interaction log
-│   │       │   └── test.log   # Test output
-│   │       └── workspace/     # Task workspace
+│   ├── results.json           # Terminal-Bench evaluation results
+│   ├── csv-to-parquet/        # Task directory (clean, no nested subfolders)
+│   │   ├── agent-logs/
+│   │   ├── sessions/
+│   │   └── workspace/
+│   ├── sqlite-with-gcov/      # Another task directory
+│   │   ├── agent-logs/
+│   │   ├── sessions/
+│   │   └── workspace/
 │   └── ...
-└── amplifier_train_2025-10-30__14-30-00_results.json  # Summary
+└── amplifier_train_2025-10-30__14-30-00_results.json  # Analysis summary
 ```
+
+The `results/` directory is automatically created and excluded from git tracking (see `.gitignore`).
 
 ## 🔧 Configuration
 
@@ -249,10 +338,10 @@ To analyze specific failed tasks:
 
 ```bash
 # View task logs
-cat ai_working/tmp/RUN_ID/TASK_ID/attempt_0/sessions/agent.log
+cat results/RUN_ID/TASK_ID/attempt_0/sessions/agent.log
 
 # Check test results
-cat ai_working/tmp/RUN_ID/TASK_ID/attempt_0/sessions/test.log
+cat results/RUN_ID/TASK_ID/attempt_0/sessions/test.log
 ```
 
 ## 📈 Performance Metrics
@@ -306,31 +395,61 @@ else
 fi
 ```
 
-## 📚 Documentation Structure
+## 📁 Clean Repository Structure
 
-### Core Documents
-- **README.md** (this file) - Main entry point and overview
-- **TERMINAL_BENCH_GUIDE.md** - Terminal-Bench usage guide
-
-### Research & Scientific Framework
-Located in `research/`:
-- **RECURSIVE_REASONING_INTEGRATION.md** - Complete task specifications
-- **RESEARCH_HYPOTHESIS.md** - Scientific framework and hypotheses
-- **EXPERIMENTAL_METHODOLOGY.md** - Evaluation methodology
-- **UNIFIED_SCIENTIFIC_FRAMEWORK.md** - Integrated research framework
-- **original_research/** - Extracted Word document content
-
-### Code Modules
-- **run_full_evaluation.py** - Main evaluation runner
-- **statistical_analysis.py** - Statistical testing implementation
-- **reasoning_trace_analyzer.py** - Reasoning pattern analysis
-- **custom_agents.py** - Agent implementations
-- **monitor_evaluation.py** - Real-time progress monitoring
-- **generate_benchmark_report.py** - Failure analysis reporting
-
-### Archived Materials
-- **archive/old_analysis_docs/** - Previous analysis iterations
-- **archive/temp_scripts/** - Temporary utility scripts
+```
+recursioneval/
+├── README.md                    # This file - main documentation
+├── TERMINAL_BENCH_GUIDE.md     # Terminal-Bench usage guide
+├── requirements.txt             # Python dependencies
+│
+├── 🧪 Core Scripts
+│   ├── run_full_evaluation.py   # Main Terminal-Bench runner
+│   ├── run_comprehensive_evaluation.py
+│   ├── statistical_analysis.py  # Enhanced with recursion metrics
+│   ├── reasoning_trace_analyzer.py
+│   └── custom_agents.py         # Amplifier agent configuration
+│
+├── 🛠️ Utilities
+│   ├── monitor_evaluation.py    # Real-time monitoring
+│   ├── analyze_last_run.py     # Results analyzer
+│   ├── generate_benchmark_report.py
+│   ├── generate_eval_dashboard.py
+│   ├── test_tasks_locally.py   # Local task testing
+│   └── run_all_tests.py        # Pytest runner
+│
+├── 📚 docs/
+│   ├── EVALUATION_RESULTS_GUIDE.md
+│   ├── status/                  # Implementation status docs
+│   │   ├── IMPLEMENTATION_COMPLETE.md
+│   │   ├── FIXES_AND_TESTING_COMPLETE.md
+│   │   └── RESEARCH_BACKLOG.md
+│   └── reviews/                 # Peer reviews
+│       └── INNOVATION_PEER_REVIEW.md
+│
+├── 🔬 research/
+│   ├── RECURSIVE_REASONING_INTEGRATION.md
+│   ├── RESEARCH_HYPOTHESIS.md
+│   ├── EXPERIMENTAL_METHODOLOGY.md
+│   ├── UNIFIED_SCIENTIFIC_FRAMEWORK.md
+│   └── original_research/       # Source documents
+│
+├── 📦 tasks/                    # 10 recursive reasoning tasks
+│   ├── fibonacci-calculator/
+│   ├── tree-traversal-master/
+│   ├── n-queens-solver/
+│   ├── tower-of-hanoi-solver/
+│   ├── nested-logic-resolver/
+│   ├── recursive-planner/
+│   ├── recursive-summarizer/
+│   ├── self-referential-solver/
+│   ├── recursive-agent-loop/
+│   └── contact-manager-api/
+│
+└── 📄 Configuration
+    ├── .gitignore               # Clean ignore patterns
+    └── split.json               # Task split configuration
+```
 
 ## 📚 External Resources
 

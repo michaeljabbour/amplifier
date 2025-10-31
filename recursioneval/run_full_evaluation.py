@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any
 
-from terminal_bench import Harness
+from custom_harness import create_harness
 
 
 def load_task_split(split_file: Path) -> Dict[str, List[str]]:
@@ -34,14 +34,6 @@ def run_evaluation(
 ) -> Dict[str, Any]:
     """Run the terminal-bench evaluation."""
 
-    # Configure agent import path
-    if agent == "amplifier":
-        agent_import_path = "custom_agents:CustomAmplifierAgent"
-    elif agent == "baseline":
-        agent_import_path = "custom_agents:ClaudeCodeAgent"
-    else:
-        raise ValueError(f"Unknown agent type: {agent}")
-
     print(f"🚀 Starting Terminal-Bench Evaluation")
     print(f"📊 Agent: {agent}")
     print(f"📝 Tasks: {len(task_ids)} tasks")
@@ -53,29 +45,30 @@ def run_evaluation(
     print(f"📁 Output: {output_dir / run_id}")
     print("-" * 50)
 
-    # Initialize harness
-    harness_kwargs = {
-        "output_path": output_dir,
-        "run_id": run_id,
-        "dataset_name": "terminal-bench-core",
-        "dataset_version": "0.1.1",
-        "agent_import_path": agent_import_path,
-        "no_rebuild": False,
-        "cleanup": True,
-        "task_ids": task_ids,
-        "n_concurrent_trials": n_concurrent_trials,
-        "n_attempts": n_attempts,
-        "global_timeout_multiplier": timeout_multiplier,
-    }
-
-    if model_name:
-        harness_kwargs["model_name"] = model_name
-
-    harness = Harness(**harness_kwargs)
+    # Use create_harness to get a CleanHarness instance
+    harness = create_harness(
+        agent=agent,
+        task_ids=task_ids,
+        output_dir=output_dir,
+        run_id=run_id,
+        n_concurrent_trials=n_concurrent_trials,
+        n_attempts=n_attempts,
+        timeout_multiplier=timeout_multiplier,
+        model_name=model_name
+    )
 
     # Run evaluation
     print("\n🏃 Running evaluation...")
     results = harness.run()
+
+    # Custom harness should prevent nested structures, but call cleanup just in case
+    print("\n📁 Ensuring clean directory structure...")
+    try:
+        # The CleanHarness already handles this, but we can double-check
+        from utils.flatten_results import flatten_results_structure
+        flatten_results_structure(output_dir, run_id)
+    except Exception as e:
+        print(f"ℹ️  Directory structure cleanup: {e}")
 
     return results
 
@@ -97,20 +90,24 @@ def analyze_results(results) -> Dict[str, Any]:
                     break
 
     total = len(results_list) if results_list else 0
-    successful = sum(1 for r in results_list if (r.get("success", False) if isinstance(r, dict) else getattr(r, 'success', False)))
+    # Terminal-bench uses 'is_resolved' field, not 'success'
+    successful = sum(1 for r in results_list if (
+        r.get("is_resolved", False) if isinstance(r, dict)
+        else getattr(r, 'is_resolved', getattr(r, 'success', False))
+    ))
     failed = total - successful
 
     # Group failures by type
     failure_types = {}
     for result in results_list:
         if isinstance(result, dict):
-            if not result.get("success", False):
+            if not result.get("is_resolved", result.get("success", False)):
                 task_id = result.get("task_id", "unknown")
                 error = result.get("error", "unknown error")
                 failure_types[task_id] = error[:200] if isinstance(error, str) else str(error)[:200]
         else:
             # Handle object-based results
-            if not getattr(result, 'success', False):
+            if not getattr(result, 'is_resolved', getattr(result, 'success', False)):
                 task_id = getattr(result, 'task_id', 'unknown')
                 error = getattr(result, 'error', 'unknown error')
                 failure_types[task_id] = str(error)[:200]
@@ -130,14 +127,44 @@ def save_results(
     output_file: Path
 ) -> None:
     """Save results and analysis to file."""
+    # Convert BenchmarkResults to serializable format
+    serializable_results = None
+    if hasattr(results, 'results'):
+        # Extract results list from BenchmarkResults object
+        serializable_results = []
+        for r in results.results:
+            if hasattr(r, '__dict__'):
+                # Convert each result object to dict
+                result_dict = {}
+                for key, value in r.__dict__.items():
+                    try:
+                        # Try to serialize to check if it's JSON-safe
+                        json.dumps(value)
+                        result_dict[key] = value
+                    except (TypeError, ValueError):
+                        # Skip non-serializable fields
+                        result_dict[key] = str(value)
+                serializable_results.append(result_dict)
+            else:
+                serializable_results.append(r)
+    elif isinstance(results, list):
+        serializable_results = results
+    else:
+        # Try to convert to dict if it has attributes
+        if hasattr(results, '__dict__'):
+            serializable_results = {k: v for k, v in results.__dict__.items()
+                                   if not k.startswith('_')}
+        else:
+            serializable_results = results
+
     output_data = {
         "timestamp": datetime.now().isoformat(),
         "analysis": analysis,
-        "raw_results": results
+        "raw_results": serializable_results
     }
 
     with output_file.open("w") as f:
-        json.dump(output_data, f, indent=2)
+        json.dump(output_data, f, indent=2, default=str)
 
     print(f"\n💾 Results saved to: {output_file}")
 
@@ -180,8 +207,8 @@ def main():
     parser.add_argument(
         "--concurrent",
         type=int,
-        default=5,
-        help="Number of concurrent trials (default: 5)"
+        default=10,
+        help="Number of concurrent trials (default: 10)"
     )
     parser.add_argument(
         "--attempts",
@@ -203,15 +230,15 @@ def main():
     parser.add_argument(
         "--output-dir",
         type=Path,
-        help="Output directory (default: ai_working/tmp)"
+        help="Output directory (default: results/)"
     )
 
     args = parser.parse_args()
 
     # Setup paths
-    base_dir = Path(__file__).parents[2]
     split_file = Path(__file__).parent / "split.json"
-    output_dir = args.output_dir or base_dir / "ai_working" / "tmp"
+    # Default to results/ directory in the project root
+    output_dir = args.output_dir or Path(__file__).parent / "results"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Load task split
@@ -261,12 +288,22 @@ def main():
             # Analyze results
             analysis = analyze_results(results)
 
-            # Save results
-            results_file = output_dir / f"{run_id}_results.json"
-            save_results(results, analysis, results_file)
-
-            # Print summary
+            # Print summary first (so we see it even if save fails)
             print_summary(analysis)
+
+            # Try to save results
+            results_file = output_dir / f"{run_id}_results.json"
+            try:
+                save_results(results, analysis, results_file)
+            except Exception as save_error:
+                print(f"\n⚠️ Warning: Could not save results to JSON: {save_error}")
+                # Try to at least save the analysis
+                try:
+                    with results_file.open("w") as f:
+                        json.dump({"timestamp": datetime.now().isoformat(), "analysis": analysis}, f, indent=2)
+                    print(f"💾 Analysis saved to: {results_file}")
+                except:
+                    print("⚠️ Could not save analysis either")
 
             all_results[agent] = {
                 "results": results,
@@ -278,6 +315,36 @@ def main():
             print(f"\n❌ Error running evaluation for {agent}: {e}")
             import traceback
             traceback.print_exc()
+
+            # Try to read results.json from the run directory if it exists
+            run_dir = output_dir / run_id
+            results_json = run_dir / "results.json"
+            if results_json.exists():
+                print("\n📊 Reading results from Terminal-Bench output...")
+                try:
+                    with results_json.open() as f:
+                        tb_results = json.load(f)
+                    # Analyze the terminal-bench results
+                    tb_analysis = {
+                        "total_tasks": len(tb_results.get("results", [])),
+                        "successful": sum(1 for r in tb_results.get("results", []) if r.get("is_resolved", False)),
+                        "failed": 0,
+                        "success_rate": 0,
+                        "failure_types": {}
+                    }
+                    tb_analysis["failed"] = tb_analysis["total_tasks"] - tb_analysis["successful"]
+                    if tb_analysis["total_tasks"] > 0:
+                        tb_analysis["success_rate"] = (tb_analysis["successful"] / tb_analysis["total_tasks"]) * 100
+
+                    # Get failure details
+                    for r in tb_results.get("results", []):
+                        if not r.get("is_resolved", False):
+                            task_id = r.get("task_id", "unknown")
+                            tb_analysis["failure_types"][task_id] = "Task failed"
+
+                    print_summary(tb_analysis)
+                except Exception as read_error:
+                    print(f"⚠️ Could not read Terminal-Bench results: {read_error}")
 
     # Compare results if both agents were run
     if len(all_results) == 2:
