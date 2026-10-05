@@ -11,6 +11,7 @@ authors = [
 dependencies = [
     "amplifier-core>=1.0.10",
     "amplifier-app-cli @ git+https://github.com/microsoft/amplifier-app-cli@main",
+    "litellm>=1.104",
 ]
 
 [project.scripts]
